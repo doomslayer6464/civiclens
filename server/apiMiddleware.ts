@@ -88,6 +88,25 @@ export function getSystemConfig(): SystemConfigStatus {
 }
 
 function readJsonBody(req: IncomingMessage, maxBytes = 10 * 1024 * 1024): Promise<Record<string, unknown>> {
+    const parsedBody = (req as IncomingMessage & { body?: unknown }).body;
+
+  if (parsedBody !== undefined) {
+    if (typeof parsedBody === 'string') {
+      return Promise.resolve(
+        JSON.parse(parsedBody) as Record<string, unknown>
+      );
+    }
+
+    if (
+      parsedBody !== null &&
+      typeof parsedBody === 'object' &&
+      !Buffer.isBuffer(parsedBody)
+    ) {
+      return Promise.resolve(
+        parsedBody as Record<string, unknown>
+      );
+    }
+  }
   return new Promise((resolve, reject) => {
     const chunks: Buffer[] = [];
     let total = 0;
